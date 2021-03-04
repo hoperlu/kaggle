@@ -1,18 +1,29 @@
-import ml_functions
+#from main import DATA,data_inspector
 import pandas as pd
 import numpy as np
-'''
-df = pd.DataFrame(np.arange(12).reshape(3, 4),columns=['A', 'B', 'C', 'D'])
-df.iat[1,1]=pd.NA
-df.iat[2,3]=pd.NA
-print(df,'\n')
-a=ml_functions.process_missing_values(df,3,'mean')
-print(a,'\n')
-a=ml_functions.process_missing_values(a,1,'discard')
 
-print(a,'\n')
-'''
 train=pd.read_csv('train.csv')
-test=pd.read_csv('test.csv')
-ml_functions.missing_values_inspector(train)
-ml_functions.missing_values_inspector(test)
+
+'''
+train=train.values
+for index in range(train.shape[1]):
+	print(type(train[0,index]))
+'''
+'''
+df = pd.DataFrame(np.arange(30).reshape(6, 5),columns=['A', 'B', 'C', 'D','E'])
+df=Data(df)
+df.input_.iat[1,1]=pd.NA
+df.input_.iat[2,3]=pd.NA
+print(df.input_,'\n')
+
+df=Data(df.process_missing_values(3,'mean'))
+print(df.input_,'\n')
+df=Data(df.process_missing_values(1,'discard'))
+
+print(df.input_,'\n')
+
+train=Data(pd.read_csv('train.csv'))
+test=Data(pd.read_csv('test.csv'))
+train.missing_values_inspector()
+test.missing_values_inspector()
+'''
