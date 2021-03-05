@@ -21,19 +21,14 @@ def data_inspector(data):
 
 class DATA():
 	def __init__(self,train,label,test):
-		self.label=train[label]
-		self.train=train.drop(label,1)
-		if self.train.columns==test.columns:
-			self.test=test.copy()
-		else:
-			self.test=pd.DataFrame(0,index=range(len(test)),columns=self.train.columns)
-			for col in self.train.columns:
-				self.test[col]=test[col]
+		self.label=train[label] #series
+		self.train=train.drop(label,1)#dataframe
+		self.test=test.copy()#dataframe
 
 	def process_features(self,label_type,**kwargs):
 		'''
 		label_type='continuous' or 'categorical'
-		format of kwargs: name of column=('method_1','method_2')
+		format of kwargs: name of column=['method_1','method_2']
 		kwargs每個key的value為list，在input時只有兩項，處理完變成
 		('method_1','method_2',processed features of train,processed features of test)
 		return feeding data
@@ -53,50 +48,91 @@ class DATA():
 		'''
 		discarded_tr=[]#record discarded rows, so we can discard corresponding rows of label later
 		discarded_te=[]
-		for key in kwargs:
-			train,test=kwargs[key][0](self.train[key],self.test[key])
+		for key in self.train.columns:
+			train,test=kwargs[key][0](self.train[key],self.test[key])#input series, output dataframe
 			if kwargs[key][1].__name__!='discard':
-				train,test=kwargs[key][1](train,test)#input may be series or dataframe
+				train,test=kwargs[key][1](train,test)#input dataframe, output dataframe
 			else:
-				train,test=discard(train,test,discarded_tr,discarded_te)#input may be series or dataframe
+				train,test=discard(train,test,discarded_tr,discarded_te)#input dataframe, output dataframe
 			kwargs[key].extend([train,test])
 		discarded_tr=set(discarded_tr)
 		discarded_te=set(discarded_te)
-		train=pd.DataFrame(0,range(len(self.train)),['temp_index'])
-		train=pd.concat([train].extend([kwargs[key][2] for key in kwargs]),1)
-		train.drop('temp_index',1,inplace=True)
+		train=pd.DataFrame(0,range(len(self.train)),['t_em_p_i_n_dex'],dtype=float)
+		train=pd.concat([train].extend([kwargs[key][2] for key in self.train.columns]),1)
+		train.drop('t_em_p_i_n_dex',1,inplace=True)
 		train.drop(discarded_tr,0,inplace=True)
-		test=pd.DataFrame(0,range(len(self.test)),['temp_index'])
-		test=pd.concat([test].extend([kwargs[key][3] for key in kwargs]),1) #join=‘inner’ or ‘outer’
-		test.drop('temp_index',1,inplace=True)
+		test=pd.DataFrame(0,range(len(self.test)),['t_em_p_i_n_dex'],dtype=float)
+		test=pd.concat([test].extend([kwargs[key][3] for key in self.train.columns]),1) #join=‘inner’ or ‘outer’
+		test.drop('t_em_p_i_n_dex',1,inplace=True)
 		test.drop(discarded_te,0,inplace=True)
 		if label_type=='categorical':
 
-		label.drop(discarded_tr,0,inplace=True)
+		self.label.drop(discarded_tr,inplace=True)
 		return train.values,test.values,label.values
 
 def continuous(train,test):
-	
+	#normalize, return DataFrame
+	mean=train.mean()
+	std=train.std()
+	return pd.DataFrame((train-mean)/std,range(len(train)),[0],dtype=float),pd.DataFrame((test-mean)/std,range(len(test)),[0],dtype=float)
 
-def categorical(train,test)
-	pass
+def categorical(train,test):
+	#every unique term is a column, return DataFrame
+	name={}
+	count=0
+	for term in train:
+		if not pd.isna(term):
+			if term not in name:
+				name[term]=count
+				count+=1
+	res_tr=pd.DataFrame(0,range(len(train)),range(len(name)),dtype=float)
+	for index in range(len(train)):
+		if pd.isna(train[index]):
+			res_tr.iloc[index,:]=np.nan
+		else:
+			res_tr.iat[index,name[train[index]]]=1
+	for col in range(len(name)):
+		res_tr[col]=(res_tr[col]-res_tr[col].mean())/res_tr[col].std
+	res_te=pd.DataFrame(0,range(len(test)),range(len(name)),dtype=float)
+	for index in range(len(test)):
+		if pd.isna(test[index]):
+			res_te.iloc[index,:]=np.nan
+		else:
+			res_te.iat[index,name[test[index]]]=1
+	for col in range(len(name)):
+		res_te[col]=(res_te[col]-res_te[col].mean())/res_te[col].std
+	return res_tr,res_te
 
 def discard(train,test,discarded_tr,discarded_te):
-	pass
+	#discard missing values. 遺棄不是在此函式內發生，此函式僅記錄要遺棄那些rows
+	for index in range(len(train)):
+		if pd.isna(train.iat[index,0]):
+			discarded_tr.append(index)
+	for index in range(len(test)):
+		if pd.isna(test.iat[index,0]):
+			discarded_te.append(index)
 
 def datawig(train,test):
 	pass
 
 def mean(train,test):
-	pass
+	#use mean to substitute missing values
+	res_tr=train.copy()
+	for index in range(len(res_tr)):
+		if pd.isna(res_tr.iat[index,0]):
+			res_tr.iloc[index,:]=0
+	res_te=test.copy()
+	for index in range(len(res_te)):
+		if pd.isna(res_te.iat[index,0]):
+			res_te.iloc[index,:]=0
+	return res_tr,res_te
+			
 
 def median(train,test):
 	pass
 
 def extra(train,test):
-	pass
-
-def integer(train,test):
+	#only suitable for categorical
 	pass
 
 train=read_csv('train.csv')

@@ -10,7 +10,7 @@ for index in range(train.shape[1]):
 	print(type(train[0,index]))
 '''
 '''
-df = pd.DataFrame(np.arange(30).reshape(6, 5),columns=['A', 'B', 'C', 'D','E'])
+df = pd.DataFrame(np.arange(30).reshape(6, 5),columns=['A', 'B', 'C', 'D','E'],dtype=float)
 df=Data(df)
 df.input_.iat[1,1]=pd.NA
 df.input_.iat[2,3]=pd.NA
