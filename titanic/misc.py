@@ -1,9 +1,11 @@
-#from main import DATA,data_inspector
 import pandas as pd
 import numpy as np
+import ml_functions
 
 train=pd.read_csv('train.csv')
-
+test=pd.read_csv('test.csv')
+ml_functions.data_inspector(train)
+ml_functions.data_inspector(test)
 '''
 train=train.values
 for index in range(train.shape[1]):
