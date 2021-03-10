@@ -57,7 +57,7 @@ class DATA():
 			print(key)
 		print(self.train.columns)
 		for key in self.train.columns:
-			train=pd.concat([train,kwargs[key]['train']],)
+			train=pd.concat([train,kwargs[key]['train']],1)
 		#train=pd.concat([train].extend([kwargs[key]['train'] for key in self.train.columns]),1)
 		train.drop('t_em_p_i_n_dex',1,inplace=True)
 		train.drop(discarded_tr,0,inplace=True)
