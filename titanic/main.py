@@ -52,24 +52,15 @@ class DATA():
 			kwargs[key]['train'][key],kwargs[key]['test'][key]=normalize(key,kwargs[key]['train'],kwargs[key]['test'])
 		discarded_tr=set(discarded_tr)
 		discarded_te=set(discarded_te)
-		train=pd.DataFrame(0,range(len(self.train)),['t_em_p_i_n_dex'],dtype=float)
-		for key in kwargs:
-			print(key)
-		print(self.train.columns)
-		for key in self.train.columns:
-			train=pd.concat([train,kwargs[key]['train']],1)
-		#train=pd.concat([train].extend([kwargs[key]['train'] for key in self.train.columns]),1)
-		train.drop('t_em_p_i_n_dex',1,inplace=True)
+		train=pd.concat([kwargs[key]['train'] for key in kwargs],1)
 		train.drop(discarded_tr,0,inplace=True)
-		test=pd.DataFrame(0,range(len(self.test)),['t_em_p_i_n_dex'],dtype=float)
-		test=pd.concat([test].extend([kwargs[key]['test'] for key in self.train.columns]),1) #join=‘inner’ or ‘outer’
-		test.drop('t_em_p_i_n_dex',1,inplace=True)
+		test=pd.concat([kwargs[key]['test'] for key in kwargs],1)
 		test.drop(discarded_te,0,inplace=True)
 		self.label=label_type('label',self.label)
 		self.label['label']=normalize('label',self.label)
 		self.label.drop(discarded_tr,0,inplace=True)
-		print(train.shape,test.shape,label.shape)
-		return train.values,test.values,label.values
+		#print(train.shape,test.shape,self.label.shape)
+		return train.values,test.values,self.label.values
 
 def continuous(key,train,test='-1'):
 	#input series, return DataFrame
@@ -117,6 +108,9 @@ def mean(key,train,test='-1'):
 	#input dataframe, output dataframe. use mean to substitute missing values
 	res_tr=train.copy()
 	mean=res_tr[key].mean()
+	print(pd.isna(res_tr))
+	for index in range(len(res_tr)):
+		print(res_tr.iloc[index,1])
 	for index in range(len(res_tr)):
 		if pd.isna(res_tr.iat[index,0]):
 			res_tr.iloc[index,:]=mean
@@ -261,18 +255,18 @@ def normalize(key,train,test='-1'):
 
 train=pd.read_csv('train.csv')
 test=pd.read_csv('test.csv')
-#data_inspector(train)
-#data_inspector(test)
+data_inspector(train)
+data_inspector(test)
 
 #'Cabin','Name','Ticket'怎處理
-train.drop(['PassengerId','Cabin','Name','Ticket','Embarked'],1,inplace=True)
-test.drop(['PassengerId','Cabin','Name','Ticket','Embarked'],1,inplace=True)
+train.drop(['PassengerId','Cabin','Name','Ticket'],1,inplace=True)
+test.drop(['PassengerId','Cabin','Name','Ticket'],1,inplace=True)
 
 data=DATA(train,'Survived',test)
 del train
 del test 
 train,test,label=data.process_features(categorical,Pclass={'method_1':categorical,'method_2':do_nothing},
-	Sex={'method_1':categorical,'method_2':do_nothing},Age={'method_1':continuous,'method_2':mean},
+	Sex={'method_1':categorical,'method_2':do_nothing},Age={'method_1':continuous,'method_2':mode},
 	SibSp={'method_1':continuous,'method_2':do_nothing},Parch={'method_1':continuous,'method_2':do_nothing},
-	Fare={'method_1':continuous,'method_2':do_nothing})
+	Fare={'method_1':continuous,'method_2':median},Embarked={'method_1':categorical,'method_2': mean})
 #now, train and test are feeding data
