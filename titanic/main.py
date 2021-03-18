@@ -56,11 +56,11 @@ class DATA():
 		train.drop(discarded_tr,0,inplace=True)
 		test=pd.concat([kwargs[key]['test'] for key in kwargs],1)
 		test.drop(discarded_te,0,inplace=True)
-		self.label=label_type('label',self.label)
-		self.label['label']=normalize('label',self.label)
-		self.label.drop(discarded_tr,0,inplace=True)
+		label=label_type('label',self.label)
+		label['label']=normalize('label',label)
+		label.drop(discarded_tr,0,inplace=True)
 		#print(train.shape,test.shape,self.label.shape)
-		return train.values,test.values,self.label.values
+		return train.values,test.values,label.values
 
 def continuous(key,train,test='-1'):
 	#input series, return DataFrame
