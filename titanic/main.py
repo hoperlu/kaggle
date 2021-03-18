@@ -81,24 +81,24 @@ def categorical(key,train,test='-1'):
 		if pd.isna(train[index]):
 			res_tr.iloc[index,:]=np.nan
 		else:
-			res_tr.iat[index,name[train[index]]]=1
+			res_tr.iloc[index,name[train[index]]]=1
 	if type(test)!=str:
 		res_te=pd.DataFrame(0,range(len(test)),[key for index in range(len(name))],dtype=float)
 		for index in range(len(test)):
 			if pd.isna(test[index]):
 				res_te.iloc[index,:]=np.nan
 			else:
-				res_te.iat[index,name[test[index]]]=1
+				res_te.iloc[index,name[test[index]]]=1
 		return res_tr,res_te
 	return res_tr
 
 def discard(train,test,discarded_tr,discarded_te):
 	#discard rows with missing values. 遺棄不是在此函式內發生，此函式僅記錄要遺棄那些rows
 	for index in range(len(train)):
-		if pd.isna(train.iat[index,0]):
+		if pd.isna(train.iloc[index,0]):
 			discarded_tr.append(index)
 	for index in range(len(test)):
-		if pd.isna(test.iat[index,0]):
+		if pd.isna(test.iloc[index,0]):
 			discarded_te.append(index)
 
 def datawig(key,train,test):
@@ -108,16 +108,13 @@ def mean(key,train,test='-1'):
 	#input dataframe, output dataframe. use mean to substitute missing values
 	res_tr=train.copy()
 	mean=res_tr[key].mean()
-	print(pd.isna(res_tr))
 	for index in range(len(res_tr)):
-		print(res_tr.iloc[index,1])
-	for index in range(len(res_tr)):
-		if pd.isna(res_tr.iat[index,0]):
+		if pd.isna(res_tr.iloc[index,0]):
 			res_tr.iloc[index,:]=mean
 	if type(test)!=str:
 		res_te=test.copy()
 		for index in range(len(res_te)):
-			if pd.isna(res_te.iat[index,0]):
+			if pd.isna(res_te.iloc[index,0]):
 				res_te.iloc[index,:]=mean
 		return res_tr,res_te
 	return res_tr
@@ -127,12 +124,12 @@ def median(key,train,test='-1'):
 	res_tr=train.copy()
 	median=res_tr[key].median()
 	for index in range(len(res_tr)):
-		if pd.isna(res_tr.iat[index,0]):
+		if pd.isna(res_tr.iloc[index,0]):
 			res_tr.iloc[index,:]=median
 	if type(test)!=str:
 		res_te=test.copy()
 		for index in range(len(res_te)):
-			if pd.isna(res_te.iat[index,0]):
+			if pd.isna(res_te.iloc[index,0]):
 				res_te.iloc[index,:]=median
 		return res_tr,res_te
 	return res_tr
@@ -173,13 +170,13 @@ def mode(key,train,test='-1'):
 					i=index
 					break
 			for index in range(len(res_tr)):
-				if pd.isna(res_tr.iat[index,0]):
+				if pd.isna(res_tr.iloc[index,0]):
 					res_tr.iloc[index,:]=0
-					res_tr.iat[index,i]=1
+					res_tr.iloc[index,i]=1
 			for index in range(len(res_te)):
-				if pd.isna(res_te.iat[index,0]):
+				if pd.isna(res_te.iloc[index,0]):
 					res_te.iloc[index,:]=0
-					res_te.iat[index,i]=1
+					res_te.iloc[index,i]=1
 		return res_tr,res_te
 	if res_tr.shape[1]==1:#continuous
 		mode=res_tr[key].mode()
@@ -206,34 +203,28 @@ def mode(key,train,test='-1'):
 				i=index
 				break
 		for index in range(len(res_tr)):
-			if pd.isna(res_tr.iat[index,0]):
+			if pd.isna(res_tr.iloc[index,0]):
 				res_tr.iloc[index,:]=0
-				res_tr.iat[index,i]=1
+				res_tr.iloc[index,i]=1
 	return res_tr
 
 def extra(key,train,test='-1'):
 	#input dataframe, output dataframe, add an extra category to represent missing values(only suitable for categorical features)
 	res_tr=train.copy()
+	temp=pd.DataFrame(0,range(len(res_tr)),[key],dtype=float)
 	for index in range(len(res_tr)):
-		if pd.isna(res_tr.iat[index,0]):
-			temp=pd.DataFrame(0,range(len(res_tr)),[key],dtype=float)
-			for index2 in range(len(res_tr)):
-				if pd.isna(res_tr.iat[index2,0]):
-					temp.iat[index2,0]=1
-					res_tr.iloc[index2,:]=0
-			res_tr=pd.concat([res_tr,temp],1)
-			break
+		if pd.isna(res_tr.iloc[index,0]):
+			temp.iloc[index,0]=1
+			res_tr.iloc[index,:]=0
+	res_tr=pd.concat([res_tr,temp],1)
 	if type(test)!=str:
 		res_te=test.copy()
-		for index in range(len(res_te)):
-			if pd.isna(res_te.iat[index,0]):
-				temp=pd.DataFrame(0,range(len(res_te)),[0],dtype=float)
-				for index2 in range(len(res_te)):
-					if pd.isna(res_te.iat[index2,0]):
-						temp.iat[index2,0]=1
-						res_te.iloc[index2,:]=0
-				res_te=pd.concat([res_te,temp],1)
-				break
+		temp=pd.DataFrame(0,range(len(res_te)),[key],dtype=float)
+		for index2 in range(len(res_te)):
+			if pd.isna(res_te.iloc[index2,0]):
+				temp.iloc[index2,0]=1
+				res_te.iloc[index2,:]=0
+		res_te=pd.concat([res_te,temp],1)
 		return res_tr,res_te
 	return res_tr
 
@@ -268,5 +259,5 @@ del test
 train,test,label=data.process_features(categorical,Pclass={'method_1':categorical,'method_2':do_nothing},
 	Sex={'method_1':categorical,'method_2':do_nothing},Age={'method_1':continuous,'method_2':mode},
 	SibSp={'method_1':continuous,'method_2':do_nothing},Parch={'method_1':continuous,'method_2':do_nothing},
-	Fare={'method_1':continuous,'method_2':median},Embarked={'method_1':categorical,'method_2': mean})
+	Fare={'method_1':continuous,'method_2':median},Embarked={'method_1':categorical,'method_2': extra})
 #now, train and test are feeding data
